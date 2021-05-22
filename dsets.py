@@ -3,20 +3,22 @@ import glob
 import functools
 import csv
 from collections import namedtuple
+import numpy as np
+import SimpleITK as sitk
 
 CandidateInfoTuple = namedtuple(
-    'CandidateInfoTuple',
-    'isNodule_bool, diameter_mm, series_uid, center_xyz'
+    "CandidateInfoTuple", "isNodule_bool, diameter_mm, series_uid, center_xyz"
 )
 
-@functools.lru_cache(1)
+
+@functools.lru_cache(maxsize=1)
 def getCandidateInfoList(requireOnDisk_bool=True):
-    mhd_list = glob.glob('data/subset*/*.mhd')
+    mhd_list = glob.glob("data/subset*/*.mhd")
     presentOnDisk_set = {os.path.split(p)[-1][:4] for p in mhd_list}
-    
+
     # Group annotations by series_uid
     diameter_dict = {}
-    with open('data/annotations.csv', "r") as f:
+    with open("data/annotations.csv", "r") as f:
         for row in list(csv.reader(f))[1:]:
             series_uid = row[0]
             annotationCenter_xyz = tuple([float(x) for x in row[1:4]])
@@ -28,7 +30,7 @@ def getCandidateInfoList(requireOnDisk_bool=True):
 
     # Candidates info list
     candidateInfo_list = []
-    with open('data/candidates.csv', "r") as f:
+    with open("data/candidates.csv", "r") as f:
         for row in list(csv.reader(f))[1:]:
             series_uid = row[0]
 
@@ -48,14 +50,29 @@ def getCandidateInfoList(requireOnDisk_bool=True):
                     else:
                         candidateDiameter_mm = annotationDiameter_mm
                         break
-            
-            candidateInfo_list.append(CandidateInfoTuple(
-                isNodule_bool,
-                candidateDiameter_mm,
-                series_uid,
-                candidateCenter_xyz
-            ))
-    
+
+            candidateInfo_list.append(
+                CandidateInfoTuple(
+                    isNodule_bool, candidateDiameter_mm, series_uid, candidateCenter_xyz
+                )
+            )
 
     candidateInfo_list.sort(reverse=True)
     return candidateInfo_list
+
+
+    class Ct:
+        def __init__(self, series_uid):
+            mhd_path = glob.glob(
+                "data/subset*/{}.mhd".format(series_uid)
+            )[0]
+
+            ct_mhd = sitk.ReadImage(mhd_path)
+            ct_a = np.array(sitk.GetArrayFromImage(ct_mhd), dtype=np.float32)
+            # Clip values (Hounsfield units)
+            ct_a.clip(-1000, 1000, ct_a)
+
+            self.series_uid = series_uid
+            self.hu_a = ct_a
+
+
