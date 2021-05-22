@@ -3,8 +3,11 @@ import glob
 import functools
 import csv
 from collections import namedtuple
+from util import XyzTuple, xyz2irc
 import numpy as np
 import SimpleITK as sitk
+
+from util import xyz2irc
 
 CandidateInfoTuple = namedtuple(
     "CandidateInfoTuple", "isNodule_bool, diameter_mm, series_uid, center_xyz"
@@ -74,5 +77,24 @@ class Ct:
 
         self.series_uid = series_uid
         self.hu_a = ct_a
+        self.origin_xyz = XyzTuple(*ct_mhd.GetOrigin())
+        self.vxSize_xyz = XyzTuple(*ct_mhd.GetSpacing())
+        self.direction_a = np.array(ct_mhd.GetDirection()).reshape(3, 3)
 
 
+        def getRawCandidate(self, center_xyz, width_irc):
+            center_irc = xyz2irc(
+                center_xyz,
+                self.origin_xyz,
+                self.vxSize_xyz,
+                self.direction_a
+            )
+
+            slice_list = []   
+            for axis, center_val in enumerate(center_irc):
+                start_ndx = int(round(center_val - width_irc[axis] / 2))
+                end_ndx = int(start_ndx + width_irc[axis])
+                slice_list.append(slice(start_ndx, end_ndx))
+            
+            ct_chunk = self.hu_a[tuple(slice_list)]
+            return ct_chunk, center_irc
