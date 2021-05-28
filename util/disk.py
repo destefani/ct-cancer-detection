@@ -1,10 +1,7 @@
 import gzip
-from io import BytesIO
 
-from cassandra.cqltypes import BytesType
-from diskcache import FanoutCache, Disk,core
-from diskcache.core import io
-from diskcache.core import MODE_BINARY
+from diskcache import FanoutCache, Disk
+from diskcache.core import BytesType, MODE_BINARY, BytesIO
 
 from util.logconf import logging
 log = logging.getLogger(__name__)
@@ -17,11 +14,13 @@ class GzipDisk(Disk):
     def store(self, value, read, key=None):
         """
         Override from base class diskcache.Disk.
+
         Chunking is due to needing to work on pythons < 2.7.13:
         - Issue #27130: In the "zlib" module, fix handling of large buffers
           (typically 2 or 4 GiB).  Previously, inputs were limited to 2 GiB, and
           compression and decompression operations did not properly handle results of
           2 or 4 GiB.
+
         :param value: value to convert
         :param bool read: True when value is file-like object
         :return: (size, mode, filename, value) tuple for Cache table
@@ -47,11 +46,13 @@ class GzipDisk(Disk):
     def fetch(self, mode, filename, value, read):
         """
         Override from base class diskcache.Disk.
+
         Chunking is due to needing to work on pythons < 2.7.13:
         - Issue #27130: In the "zlib" module, fix handling of large buffers
           (typically 2 or 4 GiB).  Previously, inputs were limited to 2 GiB, and
           compression and decompression operations did not properly handle results of
           2 or 4 GiB.
+
         :param int mode: value mode raw, binary, text, or pickle
         :param str filename: filename of corresponding value
         :param value: database value
@@ -77,7 +78,7 @@ class GzipDisk(Disk):
         return value
 
 def getCache(scope_str):
-    return FanoutCache('data/cache/' + scope_str,
+    return FanoutCache('data-unversioned/cache/' + scope_str,
                        disk=GzipDisk,
                        shards=64,
                        timeout=1,

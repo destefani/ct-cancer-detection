@@ -153,25 +153,32 @@ def enumerateWithEstimate(
     to the standard `enumerate` (the differences are things like how
     our function returns a generator, while `enumerate` returns a
     specialized `<enumerate object at 0x...>`).
+
     However, the side effects (logging, specifically) are what make the
     function interesting.
+
     :param iter: `iter` is the iterable that will be passed into
         `enumerate`. Required.
+
     :param desc_str: This is a human-readable string that describes
         what the loop is doing. The value is arbitrary, but should be
         kept reasonably short. Things like `"epoch 4 training"` or
         `"deleting temp files"` or similar would all make sense.
+
     :param start_ndx: This parameter defines how many iterations of the
         loop should be skipped before timing actually starts. Skipping
         a few iterations can be useful if there are startup costs like
         caching that are only paid early on, resulting in a skewed
         average when those early iterations dominate the average time
         per iteration.
+
         NOTE: Using `start_ndx` to skip some iterations makes the time
         spent performing those iterations not be included in the
         displayed duration. Please account for this if you use the
         displayed duration for anything formal.
+
         This parameter defaults to `0`.
+
     :param print_ndx: determines which loop interation that the timing
         logging will start on. The intent is that we don't start
         logging until we've given the loop a few iterations to let the
@@ -179,17 +186,22 @@ def enumerateWithEstimate(
         require that `print_ndx` not be less than `start_ndx` times
         `backoff`, since `start_ndx` greater than `0` implies that the
         early N iterations are unstable from a timing perspective.
+
         `print_ndx` defaults to `4`.
+
     :param backoff: This is used to how many iterations to skip before
         logging again. Frequent logging is less interesting later on,
         so by default we double the gap between logging messages each
         time after the first.
+
         `backoff` defaults to `2` unless iter_len is > 1000, in which
         case it defaults to `4`.
+
     :param iter_len: Since we need to know the number of items to
         estimate when the loop will finish, that can be provided by
         passing in a value for `iter_len`. If a value isn't provided,
         then it will be set by using the value of `len(iter)`.
+
     :return:
     """
     if iter_len is None:
