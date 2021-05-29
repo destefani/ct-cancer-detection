@@ -9,9 +9,9 @@ from torch.optim import SGD
 from torch.utils.data import DataLoader
 
 from util.util import enumerateWithEstimate
-from .dsets import LunaDataset
+from dsets import LunaDataset
 from util.logconf import logging
-from .model import LunaModel
+from model import LunaModel
 
 log = logging.getLogger(__name__)
 # log.setLevel(logging.WARN)
@@ -43,9 +43,7 @@ class LunaPrepCacheApp:
         log.info("Starting {}, {}".format(type(self).__name__, self.cli_args))
 
         self.prep_dl = DataLoader(
-            LunaDataset(
-                sortby_str='series_uid',
-            ),
+            LunaDataset(),
             batch_size=self.cli_args.batch_size,
             num_workers=self.cli_args.num_workers,
         )
