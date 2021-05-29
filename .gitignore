@@ -130,6 +130,7 @@ dmypy.json
 
 # Data
 data/
+data-unversioned/
 
 # VS Code
 .vscode
